@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="partner_ledger_view_layout">
+        <t t-call="web.html_container">
+            <t t-if="not o" t-set="o" t-value="doc"/>
+            <t t-if="not company">
+                <!--  Multicompany  -->
+                <t t-if="company_id">
+                    <t t-set="company" t-value="company_id"/>
+                </t>
+                <t t-elif="o and 'company_id' in o">
+                    <t t-set="company" t-value="o.company_id.sudo()"/>
+                </t>
+                <t t-else="else">
+                    <t t-set="company" t-value="res_company"/>
+                </t>
+            </t>
+            <div class="header" t-att-style="report_header_style">
+                <div class="row">
+                    <div class="col-6">
+                        <img t-if="company.logo" t-att-src="image_data_uri(company.logo)"
+                             style="max-height:150px;align:left;margin-top:-10px;" alt="Logo"/>
+                    </div>
+                    <div class="col-6" style="text-align:center;">
+                        <h4>
+                            <t t-esc="company.partner_id.name"/>
+                        </h4>
+                        <!--            <h6><t t-esc="company.street"/> </h6>-->
+                        <!--            <h6><t t-esc="company.street2"/> </h6>-->
+                        <!--            <h6><t t-esc="company.city"/> </h6>-->
+                        <!--            <h6><t t-esc="company.state_id.name"/> </h6>-->
+                        <!--            <h6><t t-esc="company.zip"/> </h6>-->
+                    </div>
+                    <!---->
+                </div>
+            </div>
+            <div class="col-9 text-right" t-field="company.report_header" name="moto">
+                <div t-field="company.partner_id"
+                     t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": true}'/>
+            </div>
+            <div class="article" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id"
+                 t-att-data-oe-lang="o and o.env.context.get('lang')">
+                <t t-raw="0"/>
+            </div>
+            <div class="footer o_background_footer">
+                <div>
+                    <div t-field="company.report_footer"/>
+                    <div t-if="report_type == 'pdf'" class="text-muted">
+                        <hr style="text-color:orange; width:100%;"></hr>
+                        <div class="row">
+                            <div class="col-6" style="text-align:right;">
+                                Page:
+                                <span class="page"/>
+                                /
+                                <span class="topage"/>
+                            </div>
+                            <div class="col-6" style="text-align:right;">
+                                <span style="color:gray;">Powered by Enzapps</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+    <template id="report_partnerledger_pdf">
+        <t t-call="web.html_container">
+            <t t-call="partner_ledgers_pdf_report.partner_ledger_view_layout">
+                <t t-foreach="docs.mapped('partner_id')" t-as="branch_new">
+
+                    <!--                <t t-set="data_report_margin_top" t-value="12"/>-->
+                    <!--                <t t-set="data_report_header_spacing" t-value="9"/>-->
+                    <!--                <t t-set="data_report_dpi" t-value="110"/>-->
+                    <div class="page">
+                        <!--                        <h2>-->
+                        <!--                            <t t-esc="branch_new.name"/>-->
+                        <!--                        </h2>-->
+                        <!--                    <div class="row">-->
+                        <!--                        <div class="col-3">-->
+                        <!--                            <strong>Company:</strong>-->
+                        <!--                            <p t-esc="res_company.name"/>-->
+                        <!--                            <strong>Branch Name:</strong>-->
+                        <!--                            <span t-esc="data['form']['branch_id']"/>-->
+                        <!--                        </div>-->
+                        <!--                        <div class="col-3">-->
+                        <!--                            <t t-if="data['form']['date_from']">-->
+                        <!--                                <strong>Date from :</strong>-->
+                        <!--                                <span t-esc="data['form']['date_from']"/>-->
+                        <!--                                <br/>-->
+                        <!--                            </t>-->
+                        <!--                            <t t-if="data['form']['date_to']">-->
+                        <!--                                <strong>Date to :</strong>-->
+                        <!--                                <span t-esc="data['form']['date_to']"/>-->
+                        <!--                            </t>-->
+                        <!--                        </div>-->
+                        <!--                        <div class="col-3">-->
+                        <!--                            <strong>Target Moves:</strong>-->
+                        <!--                            <p t-if="data['form']['target_move'] == 'all'">All Entries</p>-->
+                        <!--                            <p t-if="data['form']['target_move'] == 'posted'">All Posted Entries</p>-->
+                        <!--                        </div>-->
+                        <!--                    </div>-->
+
+                        <table class="table table-sm table-reports" style="font-size:10px;">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <!--                                <th>Branch</th>-->
+                                    <!--                                <th>Partner</th>-->
+                                    <th>JRNL</th>
+                                    <th>Account</th>
+                                    <th>Ref</th>
+                                    <th>Due Date</th>
+                                    <th>Match No</th>
+                                    <th>Initial Bal</th>
+                                    <th>Debit Total</th>
+                                    <th>Credit Total</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <!--                                <strong t-esc="branch_new.name"/>-->
+                                <!--                                <br/>-->
+
+                                <tr>
+                                    <td class="text-left" colspan="6">
+                                        <span>
+                                            <strong>
+                                                <t t-esc="branch_new.name"/>
+                                            </strong>
+                                        </span>
+                                        <t t-if="branch_new.street">
+                                            <t t-esc="branch_new.street"/>,
+                                        </t>
+                                        <t t-if="branch_new.street2">
+                                            <t t-esc="branch_new.street2"/>,
+                                        </t>
+                                        <t t-if="branch_new.city">
+                                            <t t-esc="branch_new.city"/>,
+                                        </t>
+                                        <t t-if="branch_new.state_id">
+                                            <t t-esc="branch_new.state_id.name"/>,
+                                        </t>
+                                        <t t-if="branch_new.country_id">
+                                            <t t-esc="branch_new.country_id.name"/>,
+                                        </t>
+                                        <t t-if="branch_new.vat">
+                                            <t t-esc="branch_new.vat"/>
+                                        </t>
+                                    </td>
+                                    <td class="text-center">
+                                        <b>
+                                            <span><t t-esc="'{0:,.2f}'.format(sum(docs.mapped('cumulated_balance')))"/>SR</span>
+                                        </b>
+                                    </td>
+                                    <td class="text-center">
+                                        <b>
+                                           <span><t t-esc="'{0:,.2f}'.format(sum(docs.mapped('debit')))"/>SR</span>
+                                        </b>
+                                    </td>
+                                    <td class="text-center">
+                                        <b>
+                                            <t t-set="i" t-value="1"/>
+                                            <t t-foreach="branch_new.all_invoices(docs)" t-as="o">
+<!--                                                    <t t-if="branch_new==o.partner_id">-->
+                                                <t t-if="i==1">
+                                                       <b> <span><t t-esc="'{0:,.2f}'.format( o.entry_checking_credit(docs))"/>SR</span></b>
+
+                                                    </t>
+                                                <t t-set="i" t-value="i+1"/>
+                                            </t>
+<!--                                            <t t-esc="sum(docs.mapped('credit'))"/>-->
+                                        </b>
+                                    </td>
+                                    <td class="text-center">
+                                        <b>
+                                            <t t-set="i" t-value="1"/>
+                                            <t t-foreach="branch_new.all_invoices(docs)" t-as="o">
+                                                    <t t-if="branch_new==o.partner_id">
+                                                <t t-if="i==1">
+                                                        <t t-set="locations" t-value="o.balance_cumulated_final(branch_new,o)"/>
+                                                        <b> <span><t t-esc="'{0:,.2f}'.format(locations)"/>SR</span></b>
+                                                        <t t-set="i" t-value="i+1"/>
+                                                    </t>
+                                                        </t>
+                                            </t>
+
+
+
+
+<!--                                            <t t-set="i" t-value="1"/>-->
+<!--                                            <t t-foreach="branch_new.all_invoices(docs)" t-as="o">-->
+<!--                                                    <t t-if="branch_new==o.partner_id">-->
+<!--                                                <t t-if="i==1">-->
+<!--                                            <t t-esc="sum(docs.mapped('balance'))"/>-->
+<!--                                            <t t-set="locations" t-value="o.balance_cumulated(branch_new,o)"/>-->
+
+<!--                                                <t t-set="credit" t-value="entry.credit"/>-->
+<!--                                                <strong t-esc="o.balance_received(credit,locations)"/>-->
+
+<!--                                                </t>-->
+<!--                                            </t>-->
+                                        </b>
+                                    </td>
+                                </tr>
+
+                                <t t-set="i" t-value="1"/>
+<!--                                <t t-foreach="docs" t-as="o">-->
+                                <t t-foreach="branch_new.all_invoices(docs)" t-as="o">
+                                    <t t-if="branch_new==o.partner_id">
+                                        <tr>
+                                            <td class="text-center">
+                                                <t t-esc="o.date"/>
+                                            </td>
+                                            <!--                                    <td class="text-right">-->
+                                            <!--                                        <strong t-esc="o.branch_id.name"/>-->
+                                            <!--                                    </td>-->
+                                            <!--                                            <td class="text-center">-->
+                                            <!--                                                <strong t-esc="o.partner_id.name"/>-->
+                                            <!--                                            </td>-->
+                                            <td class="text-center">
+                                                <t t-esc="o.move_id.name"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <t t-esc="o.account_id.name"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <t t-esc="o.name"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <t t-esc="o.date_maturity"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <t t-esc="o.matching_number"/>
+                                            </td>
+                                            <td class="text-center">
+<!--                                                <t t-if="i==len(docs)">-->
+                                                    <t t-esc="o.balance_before_cumulated(branch_new,o)"/>SR
+<!--                                                </t>-->
+                                            </td>
+                                            <td class="text-center">
+                                                <span t-field="o.debit"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <span t-field="o.credit"/>
+                                            </td>
+                                            <td class="text-center">
+                                              <span>  <t t-esc="'{0:,.2f}'.format(o.balance_cumulated(branch_new,o))"/>SR</span>
+                                            </td>
+
+
+                                        </tr>
+                                        <t t-foreach="o.entry_checking(o)" t-as="entry">
+                                        <tr>
+                                            <td class="text-center">
+                                                <t t-esc="o.date"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <t t-esc="entry.move_id.name"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <t t-esc="entry.account_id.name"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <t t-esc="entry.move_id.ref"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <t t-esc="entry.date_maturity"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <t t-esc="entry.matching_number"/>
+                                            </td>
+                                            <td class="text-center">
+<!--                                                <t t-set="locations" t-value="o.balance_before_cumulated(branch_new,o)"/>-->
+
+<!--                                                <t t-set="credit" t-value="entry.credit"/>-->
+<!--                                                <strong t-esc="o.balance_received(credit,locations)"/>-->
+                                               <span> <t t-esc="'{0:,.2f}'.format(o.balance_cumulated(branch_new,o))"/>SR</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span t-field="entry.debit"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <span t-field="entry.credit"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <span t-set="locations" t-value="o.balance_cumulated(branch_new,o)"/>
+
+                                                <span t-set="credit" t-value="entry.credit"/>
+                                               <span> <t t-esc="'{0:,.2f}'.format(o.balance_received(credit,locations))"/>SR</span>
+                                            </td>
+
+
+                                        </tr>
+                                        </t>
+
+                                    </t>
+                                <t t-set="i" t-value="i+1"/>
+                                </t>
+
+<!--                                <tr>-->
+
+<!--                                    <td class="text-left" colspan="6">-->
+<!--                                        <span>-->
+<!--                                            <strong>Total</strong>-->
+<!--                                        </span>-->
+<!--                                    </td>-->
+<!--                                    <td class="text-center">-->
+<!--                                        <b>-->
+<!--                                            <t t-esc="sum(docs.mapped('cumulated_balance'))"/>-->
+<!--                                        </b>-->
+<!--                                    </td>-->
+<!--                                    <td class="text-center">-->
+<!--                                        <b>-->
+<!--                                            <t t-esc="sum(docs.mapped('debit'))"/>-->
+<!--                                        </b>-->
+<!--                                    </td>-->
+<!--                                    <td class="text-center">-->
+<!--                                        <b>-->
+<!--                                            <t t-esc="sum(docs.mapped('credit'))"/>-->
+<!--                                        </b>-->
+<!--                                    </td>-->
+<!--                                    <td class="text-center">-->
+<!--                                        <b>-->
+<!--                                            <t t-esc="sum(docs.mapped('balance'))"/>-->
+<!--                                        </b>-->
+<!--                                    </td>-->
+<!--                                </tr>-->
+<!--                                <u/>-->
+                            </tbody>
+
+
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
